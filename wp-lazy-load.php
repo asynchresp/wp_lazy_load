@@ -21,12 +21,14 @@ class WP_Lazy_Load{
 	 * @var string
 	 */
 	const VERSION = '1.0.0';
+
 	/**
 	 * Instance of this class.
 	 *
 	 * @var object
 	 */
 	protected static $instance = null;
+
 	/**
 	 * Initialize the plugin actions.
 	 */
@@ -44,6 +46,7 @@ class WP_Lazy_Load{
 		// Execute Lazy Load in widget_text
 		add_filter( 'widget_text', array( $this, 'run_WP_Lazy_Load' ), 11 );
 	}
+
 	public static function get_instance() {
 		// If the single instance hasn't been set, set it now.
 		if ( null == self::$instance ) {
@@ -51,12 +54,13 @@ class WP_Lazy_Load{
 		}
 		return self::$instance;
 	}
+
 	/**
 	 * Get url plugin path.
 	 *
 	 * @return string
 	 */
-	public static function get_plugin_dir_url(){
+	public function get_plugin_dir_url(){
 		return plugin_dir_url( __FILE__ );
 	}
 	/**
@@ -65,24 +69,24 @@ class WP_Lazy_Load{
 	 * @return script
 	 */
 	public function add_script_in_layout(){
-		if(!wp_script_is('jquery'))
-			wp_enqueue_script('jquery');
+		if( !wp_script_is( 'jquery' ) )
+			wp_enqueue_script( 'jquery' );
 
 		// Check if debug is true
-		if (defined('SCRIPT_DEBUG') && SCRIPT_DEBUG):
-			wp_enqueue_script('jquery-sonar', esc_url(plugin_dir_url( __FILE__ ) . 'assets/js/jquery.sonar.js'), NULL, '1.8.3', true);
-			wp_enqueue_script('lazyload', esc_url(plugin_dir_url( __FILE__ ) . 'assets/js/jquery.lazyload.js'),
+		if ( defined( 'SCRIPT_DEBUG' ) && SCRIPT_DEBUG ):
+			wp_enqueue_script( 'jquery-sonar', esc_url( get_plugin_dir_url() . 'assets/js/jquery.sonar.js' ), NULL, '1.8.3', true );
+			wp_enqueue_script( 'lazyload', esc_url( get_plugin_dir_url() . 'assets/js/jquery.lazyload.js' ),
 				array( // Requirement
 					'jquery',
 					'jquery-sonar'
-				), '1.9.3', true);
+				), '1.12.0', true );
 		else:
-			wp_enqueue_script('jquery-sonar', esc_url(plugin_dir_url( __FILE__ ) . 'assets/js/jquery.sonar.min.js'), NULL, '1.8.3', true);
-			wp_enqueue_script('lazyload-min', esc_url(plugin_dir_url( __FILE__ ) . 'assets/js/jquery.lazyload.min.js'),
+			wp_enqueue_script( 'jquery-sonar', esc_url( get_plugin_dir_url( __FILE__ ) . 'assets/js/jquery.sonar.min.js' ), NULL, '1.8.3', true );
+			wp_enqueue_script( 'lazyload-min', esc_url( get_plugin_dir_url( __FILE__ ) . 'assets/js/jquery.lazyload.min.js' ),
 				array( // Requirement
 					'jquery',
 					'jquery-sonar'
-				), '1.9.3', true);
+				), '1.12.0', true );
 		endif;
 	}
 
