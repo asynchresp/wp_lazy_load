@@ -38,13 +38,13 @@ class WP_Lazy_Load{
 		add_action( 'wp_enqueue_scripts', array( $this, 'add_script_in_layout' ) );
 		
 		// Execute Lazy Load in the_content
-		add_filter( 'the_content', array( $this, 'run_WP_Lazy_Load' ), 99 );
+		add_filter( 'the_content', array( $this, 'WP_Lazy_Load' ), 99 );
 		// Execute Lazy Load in the_content
-		add_filter( 'post_thumbnail_html', array( $this, 'run_WP_Lazy_Load' ), 11 );
+		add_filter( 'post_thumbnail_html', array( $this, 'WP_Lazy_Load' ), 11 );
 		// Execute Lazy Load in avatar
-		add_filter( 'get_avatar', array( $this, 'run_WP_Lazy_Load' ), 11 );
+		add_filter( 'get_avatar', array( $this, 'WP_Lazy_Load' ), 11 );
 		// Execute Lazy Load in widget_text
-		add_filter( 'widget_text', array( $this, 'run_WP_Lazy_Load' ), 11 );
+		add_filter( 'widget_text', array( $this, 'WP_Lazy_Load' ), 11 );
 	}
 
 	public static function get_instance() {
@@ -96,7 +96,7 @@ class WP_Lazy_Load{
 	public function load_plugin_textdomain() {
 		load_plugin_textdomain( 'wp-lazy-load', false, dirname( plugin_basename( __FILE__ ) ) . '/languages' );
 	}
-	public static function run_WP_Lazy_Load( $content ) {
+	public static function WP_Lazy_Load( $content ) {
 		// Don't lazyload for feeds, previews
 		if( is_feed() || is_preview())
 			return $content;
@@ -106,7 +106,7 @@ class WP_Lazy_Load{
 			return $content;
 
 		// If no src attribute given use image
-		$apply_filters = apply_filters( 'wp-lazy-load_ph_image', 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAJcEhZcwAADsQAAA7EAZUrDhsAAAANSURBVBhXYzh8+PB/AAffA0nNPuCLAAAAAElFTkSuQmCC' );
+		$apply_filters = apply_filters( 'wp-lazy-load', 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAJcEhZcwAADsQAAA7EAZUrDhsAAAANSURBVBhXYzh8+PB/AAffA0nNPuCLAAAAAElFTkSuQmCC' );
 
 		// Regex that makes the end result loool
 		$content = preg_replace( '#<img([^>]+?)src=[\'"]?([^\'"\s>]+)[\'"]?([^>]*)>#', sprintf( '<img${1}src="%s" data-src="${2}"${3}><noscript><img${1}src="${2}"${3}></noscript>', $apply_filters ), $content );
