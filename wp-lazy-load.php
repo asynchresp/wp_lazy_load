@@ -33,8 +33,7 @@ class WP_Lazy_Load{
 	 * Initialize the plugin actions.
 	 */
 	private function __construct() {
-		// Load plugin text domain
-		add_action( 'init', array( $this, 'load_plugin_textdomain' ) );
+		// Load scrips
 		add_action( 'wp_enqueue_scripts', array( $this, 'add_script_in_layout' ) );
 		
 		// Execute Lazy Load in the_content
@@ -63,6 +62,7 @@ class WP_Lazy_Load{
 	public function get_plugin_dir_url(){
 		return plugin_dir_url( __FILE__ );
 	}
+
 	/**
 	 * Enqueue scripts in template
 	 *
@@ -91,14 +91,36 @@ class WP_Lazy_Load{
 	}
 
 	/**
-	 * Load the plugin text domain for translation.
+	 * Check robots
 	 */
-	public function load_plugin_textdomain() {
-		load_plugin_textdomain( 'wp-lazy-load', false, dirname( plugin_basename( __FILE__ ) ) . '/languages' );
+	public function is_crawlers(){
+		$user_agent = $_SERVER['HTTP_USER_AGENT'];
+		$crawlers = array(
+			'Search' => 'search',
+			'Bot' => 'bot',
+			'Crawler' => 'crawler',
+			'Google' => 'google',
+			'MSN' => 'msnbot',
+			'Bing' => 'bingbot',
+			'Yahoo' => 'yahoo',
+			'Facebook' => 'facebookexternalhit',
+			'Abacho' => 'abachobot',
+			'Baidu' => 'baiduspider'
+		);
+
+		if( !isset( $user_agent ) || empty( $user_agent ) )
+			return false;
+
+		$crawlers = implode( '|', $crawlers );
+		if ( strpos( $crawlers, strtolower( $user_agent ) ) !== false )
+			return true;
+
+		return false;
 	}
+
 	public static function WP_Lazy_Load( $content ) {
 		// Don't lazyload for feeds, previews
-		if( is_feed() || is_preview())
+		if( is_feed() || is_preview() || $this->is_crawlers() )
 			return $content;
 
 		// Don't lazy-load if the content has already been run through previously
@@ -106,7 +128,7 @@ class WP_Lazy_Load{
 			return $content;
 
 		// If no src attribute given use image
-		$apply_filters = apply_filters( 'wp-lazy-load', 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAJcEhZcwAADsQAAA7EAZUrDhsAAAANSURBVBhXYzh8+PB/AAffA0nNPuCLAAAAAElFTkSuQmCC' );
+		$apply_filters = apply_filters( 'wp-lazy-load', 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABAQMAAAAl21bKAAAAA1BMVEXDw8PWKQJEAAAACklEQVQI12NgAAAAAgAB4iG8MwAAAABJRU5ErkJggg==' );
 
 		// Regex that makes the end result loool
 		$content = preg_replace( '#<img([^>]+?)src=[\'"]?([^\'"\s>]+)[\'"]?([^>]*)>#', sprintf( '<img${1}src="%s" data-src="${2}"${3}><noscript><img${1}src="${2}"${3}></noscript>', $apply_filters ), $content );
