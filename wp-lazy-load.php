@@ -119,7 +119,7 @@ class WP_Lazy_Load{
 	}
 
 	public static function WP_Lazy_Load( $content ) {
-		// Don't lazyload for feeds, previews
+		// Don't lazyload for feeds, previews and robots
 		if( is_feed() || is_preview() || $this->is_crawlers() )
 			return $content;
 
