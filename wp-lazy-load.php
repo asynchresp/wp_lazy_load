@@ -5,7 +5,7 @@
  * Description: LazyLoad is a jQuery plugin that improves the loading of images.
  * Author: Lenivene Bezerra
  * Author URI: https://github.com/lenivene/
- * Version: 1.0.0
+ * Version: 1.0.1
  * License: GPLv2 or later
  * Text Domain: wp-lazy-load
  * Domain Path: /languages/
@@ -20,7 +20,7 @@ class WP_Lazy_Load{
 	 *
 	 * @var string
 	 */
-	const VERSION = '1.0.0';
+	const VERSION = '1.0.1';
 
 	/**
 	 * Instance of this class.
@@ -37,13 +37,19 @@ class WP_Lazy_Load{
 		add_action( 'wp_enqueue_scripts', array( $this, 'add_script_in_layout' ) );
 		
 		// Execute Lazy Load in the_content
-		add_filter( 'the_content', array( $this, 'WP_Lazy_Load' ), 99 );
+		add_filter( 'the_content', array( $this, 'load' ), 99 );
+
+		// Execute Lazy Load in the_excerpt
+		add_filter( 'the_excerpt', array( $this, 'load' ), 99 );
+
 		// Execute Lazy Load in the_content
-		add_filter( 'post_thumbnail_html', array( $this, 'WP_Lazy_Load' ), 11 );
+		add_filter( 'post_thumbnail_html', array( $this, 'load' ), 11 );
+
 		// Execute Lazy Load in avatar
-		add_filter( 'get_avatar', array( $this, 'WP_Lazy_Load' ), 11 );
+		add_filter( 'get_avatar', array( $this, 'load' ), 11 );
+
 		// Execute Lazy Load in widget_text
-		add_filter( 'widget_text', array( $this, 'WP_Lazy_Load' ), 11 );
+		add_filter( 'widget_text', array( $this, 'load' ), 11 );
 	}
 
 	public static function get_instance() {
@@ -59,7 +65,7 @@ class WP_Lazy_Load{
 	 *
 	 * @return string
 	 */
-	public function get_plugin_dir_url(){
+	public static function get_plugin_dir_url(){
 		return plugin_dir_url( __FILE__ );
 	}
 
@@ -73,27 +79,23 @@ class WP_Lazy_Load{
 			wp_enqueue_script( 'jquery' );
 
 		// Check if debug is true
-		if ( defined( 'SCRIPT_DEBUG' ) && SCRIPT_DEBUG ):
-			wp_enqueue_script( 'jquery-sonar', esc_url( get_plugin_dir_url() . 'assets/js/jquery.sonar.js' ), NULL, '1.8.3', true );
-			wp_enqueue_script( 'lazyload', esc_url( get_plugin_dir_url() . 'assets/js/jquery.lazyload.js' ),
-				array( // Requirement
-					'jquery',
-					'jquery-sonar'
-				), '1.12.0', true );
-		else:
-			wp_enqueue_script( 'jquery-sonar', esc_url( get_plugin_dir_url( __FILE__ ) . 'assets/js/jquery.sonar.min.js' ), NULL, '1.8.3', true );
-			wp_enqueue_script( 'lazyload-min', esc_url( get_plugin_dir_url( __FILE__ ) . 'assets/js/jquery.lazyload.min.js' ),
-				array( // Requirement
-					'jquery',
-					'jquery-sonar'
-				), '1.12.0', true );
-		endif;
+		$debug = ( defined( 'SCRIPT_DEBUG' ) && SCRIPT_DEBUG ) ? '' : '.min';
+
+		wp_enqueue_script( 'jquery-sonar', esc_url( $this->get_plugin_dir_url() . "assets/js/jquery.sonar{$debug}.js" ), NULL, '1.8.3', true );
+		wp_enqueue_script( 'lazyload', esc_url( $this->get_plugin_dir_url() . "assets/js/jquery.lazyload{$debug}.js" ),
+		array( // Requirement
+			'jquery',
+			'jquery-sonar'
+		),
+		'1.12.0', true );
 	}
 
 	/**
 	 * Check robots
+	 *
+	 * @return boolean
 	 */
-	public function is_crawlers(){
+	public static function is_crawlers(){
 		$user_agent = $_SERVER['HTTP_USER_AGENT'];
 		$crawlers = array(
 			'Search' => 'search',
@@ -118,13 +120,12 @@ class WP_Lazy_Load{
 		return false;
 	}
 
-	public static function WP_Lazy_Load( $content ) {
-		// Don't lazyload for feeds, previews and robots
-		if( is_feed() || is_preview() || $this->is_crawlers() )
-			return $content;
-
-		// Don't lazy-load if the content has already been run through previously
-		if ( false !== strpos( $content, 'data-src' ) )
+	public static function load( $content ) {
+		/**
+		 * Don't lazyload for feeds, previews, robots and if
+		 * the content has already been run through previously.
+		 */
+		if( is_feed() || is_preview() || self::is_crawlers() || false !== mb_strpos( $content, 'data-src' ) )
 			return $content;
 
 		// If no src attribute given use image
